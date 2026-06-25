@@ -190,8 +190,4 @@ npm start               # Metro bundler
 - The **device is virtual** - values are realistic but synthetic.
 - The mobile app targets **Android** (the native module is Android/Java only).
 
----
 
-_Built as a portfolio project demonstrating React Native, real-time IoT HMI
-design, WebSocket pub-sub, PostgreSQL design, automation logic, and Android
-native-module integration._
