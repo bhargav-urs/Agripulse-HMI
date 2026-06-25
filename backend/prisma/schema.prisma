@@ -1,0 +1,189 @@
+// -----------------------------------------------------------------------------
+// AgriPulse HMI - PostgreSQL schema (Prisma)
+//
+// Tables:
+//   devices, device_settings, telemetry, pump_events, alerts,
+//   weather_snapshots, automation_decisions
+// -----------------------------------------------------------------------------
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// -- Enums --------------------------------------------------------------------
+
+enum IrrigationMode {
+  MANUAL
+  AUTO
+}
+
+enum DeviceStatus {
+  ONLINE
+  OFFLINE
+}
+
+enum PumpAction {
+  START
+  STOP
+  EMERGENCY_STOP
+  EMERGENCY_RESET
+}
+
+/// Where a pump/command originated.
+enum CommandSource {
+  MANUAL // operator pressed a button
+  AUTO // automation engine
+  SAFETY // safety rule forced the action (e.g. overrun auto-stop)
+  SYSTEM // system/maintenance
+}
+
+enum AlertType {
+  LOW_SOIL_MOISTURE
+  LOW_TANK_LEVEL
+  PUMP_OVERRUN
+  DEVICE_DISCONNECTED
+  EMERGENCY_STOP
+  WEATHER_UNAVAILABLE
+}
+
+enum AlertSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+enum AutomationDecisionType {
+  IRRIGATE
+  SKIP
+}
+
+// -- Models -------------------------------------------------------------------
+
+/// A (virtual) irrigation device / pump controller in a field.
+model Device {
+  id        String       @id @default(cuid())
+  name      String
+  fieldName String       @map("field_name")
+  location  String
+  status    DeviceStatus @default(OFFLINE)
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+
+  settings            DeviceSettings?
+  telemetry           Telemetry[]
+  pumpEvents          PumpEvent[]
+  alerts              Alert[]
+  weatherSnapshots    WeatherSnapshot[]
+  automationDecisions AutomationDecision[]
+
+  @@map("devices")
+}
+
+/// Thresholds and configuration that drive the automation engine.
+model DeviceSettings {
+  id                       String         @id @default(cuid())
+  deviceId                 String         @unique @map("device_id")
+  moistureMinThreshold     Float          @default(30) @map("moisture_min_threshold")
+  moistureTargetThreshold  Float          @default(55) @map("moisture_target_threshold")
+  rainProbabilityThreshold Float          @default(70) @map("rain_probability_threshold")
+  tankMinThreshold         Float          @default(20) @map("tank_min_threshold")
+  maxPumpRuntimeSeconds    Int            @default(300) @map("max_pump_runtime_seconds")
+  mode                     IrrigationMode @default(MANUAL)
+  createdAt                DateTime       @default(now()) @map("created_at")
+  updatedAt                DateTime       @updatedAt @map("updated_at")
+
+  device Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  @@map("device_settings")
+}
+
+/// Time-series sensor readings published by the device simulator.
+model Telemetry {
+  id            String   @id @default(cuid())
+  deviceId      String   @map("device_id")
+  soilMoisture  Float    @map("soil_moisture")
+  temperature   Float
+  humidity      Float
+  tankLevel     Float    @map("tank_level")
+  pumpStatus    Boolean  @map("pump_status")
+  valveStatus   Boolean  @map("valve_status")
+  emergencyStop Boolean  @map("emergency_stop")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  device Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  @@index([deviceId, createdAt])
+  @@map("telemetry")
+}
+
+/// Log of every pump action (start/stop/emergency).
+model PumpEvent {
+  id              String        @id @default(cuid())
+  deviceId        String        @map("device_id")
+  action          PumpAction
+  source          CommandSource
+  durationSeconds Int?          @map("duration_seconds")
+  reason          String?
+  createdAt       DateTime      @default(now()) @map("created_at")
+
+  device Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  @@index([deviceId, createdAt])
+  @@map("pump_events")
+}
+
+/// System alerts raised by the backend.
+model Alert {
+  id           String        @id @default(cuid())
+  deviceId     String        @map("device_id")
+  type         AlertType
+  severity     AlertSeverity
+  message      String
+  acknowledged Boolean       @default(false)
+  createdAt    DateTime      @default(now()) @map("created_at")
+
+  device Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  @@index([deviceId, createdAt])
+  @@index([deviceId, acknowledged])
+  @@map("alerts")
+}
+
+/// Snapshots of weather data used by the automation engine.
+model WeatherSnapshot {
+  id              String   @id @default(cuid())
+  deviceId        String   @map("device_id")
+  temperature     Float
+  humidity        Float
+  rainProbability Float    @map("rain_probability")
+  forecastSummary String   @map("forecast_summary")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  device Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  @@index([deviceId, createdAt])
+  @@map("weather_snapshots")
+}
+
+/// Record of each automatic-irrigation decision (and why).
+model AutomationDecision {
+  id              String                 @id @default(cuid())
+  deviceId        String                 @map("device_id")
+  decision        AutomationDecisionType
+  reason          String
+  soilMoisture    Float                  @map("soil_moisture")
+  tankLevel       Float                  @map("tank_level")
+  rainProbability Float?                 @map("rain_probability")
+  pumpStarted     Boolean                @map("pump_started")
+  createdAt       DateTime               @default(now()) @map("created_at")
+
+  device Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  @@index([deviceId, createdAt])
+  @@map("automation_decisions")
+}

@@ -1,0 +1,73 @@
+# -----------------------------------------------------------------------------
+# AgriPulse HMI - full local stack
+#
+#   docker compose up --build          # postgres + backend + simulator + adminer
+#   docker compose up -d postgres      # just the database (for local dev)
+# -----------------------------------------------------------------------------
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: agripulse-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-agripulse}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-agripulse}
+      POSTGRES_DB: ${POSTGRES_DB:-agripulse}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - agripulse_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-agripulse} -d ${POSTGRES_DB:-agripulse}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  adminer:
+    image: adminer:4
+    container_name: agripulse-adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: agripulse-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: ${BACKEND_PORT:-4000}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-agripulse}:${POSTGRES_PASSWORD:-agripulse}@postgres:5432/${POSTGRES_DB:-agripulse}?schema=public
+      DEMO_DEVICE_ID: ${DEMO_DEVICE_ID:-demo-device-1}
+      WEATHER_LATITUDE: ${WEATHER_LATITUDE:-12.9716}
+      WEATHER_LONGITUDE: ${WEATHER_LONGITUDE:-77.5946}
+      WEATHER_POLL_INTERVAL_MS: ${WEATHER_POLL_INTERVAL_MS:-900000}
+      RUN_MIGRATIONS_ON_START: "true"
+      SEED_ON_START: "true"
+    ports:
+      - "${BACKEND_PORT:-4000}:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  simulator:
+    build:
+      context: ./simulator
+      dockerfile: Dockerfile
+    container_name: agripulse-simulator
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      BACKEND_URL: http://backend:4000
+      DEVICE_ID: ${DEMO_DEVICE_ID:-demo-device-1}
+      SIM_TICK_INTERVAL_MS: ${SIM_TICK_INTERVAL_MS:-2000}
+    depends_on:
+      - backend
+
+volumes:
+  agripulse_pgdata:

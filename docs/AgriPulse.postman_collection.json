@@ -1,0 +1,101 @@
+{
+  "info": {
+    "name": "AgriPulse HMI API",
+    "description": "REST endpoints for the AgriPulse smart-irrigation backend.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:4000" },
+    { "key": "deviceId", "value": "demo-device-1" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": { "method": "GET", "url": "{{baseUrl}}/health" }
+    },
+    {
+      "name": "List devices",
+      "request": { "method": "GET", "url": "{{baseUrl}}/devices" }
+    },
+    {
+      "name": "Device latest state",
+      "request": { "method": "GET", "url": "{{baseUrl}}/devices/{{deviceId}}/latest" }
+    },
+    {
+      "name": "Device connection",
+      "request": { "method": "GET", "url": "{{baseUrl}}/devices/{{deviceId}}/connection" }
+    },
+    {
+      "name": "Telemetry history (24h)",
+      "request": { "method": "GET", "url": "{{baseUrl}}/devices/{{deviceId}}/telemetry?range=24h" }
+    },
+    {
+      "name": "Update device profile",
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"fieldName\": \"North Field\",\n  \"location\": \"Bengaluru, IN\"\n}" },
+        "url": "{{baseUrl}}/devices/{{deviceId}}"
+      }
+    },
+    {
+      "name": "Pump start",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"runtimeSeconds\": 60\n}" },
+        "url": "{{baseUrl}}/devices/{{deviceId}}/pump/start"
+      }
+    },
+    {
+      "name": "Pump stop",
+      "request": { "method": "POST", "url": "{{baseUrl}}/devices/{{deviceId}}/pump/stop" }
+    },
+    {
+      "name": "Emergency stop",
+      "request": { "method": "POST", "url": "{{baseUrl}}/devices/{{deviceId}}/pump/emergency-stop" }
+    },
+    {
+      "name": "Emergency reset",
+      "request": { "method": "POST", "url": "{{baseUrl}}/devices/{{deviceId}}/pump/emergency-reset" }
+    },
+    {
+      "name": "Set mode",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"mode\": \"AUTO\"\n}" },
+        "url": "{{baseUrl}}/devices/{{deviceId}}/mode"
+      }
+    },
+    {
+      "name": "Get settings",
+      "request": { "method": "GET", "url": "{{baseUrl}}/devices/{{deviceId}}/settings" }
+    },
+    {
+      "name": "Update settings",
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"moistureMinThreshold\": 30,\n  \"rainProbabilityThreshold\": 70,\n  \"tankMinThreshold\": 20,\n  \"maxPumpRuntimeSeconds\": 300\n}" },
+        "url": "{{baseUrl}}/devices/{{deviceId}}/settings"
+      }
+    },
+    {
+      "name": "List alerts",
+      "request": { "method": "GET", "url": "{{baseUrl}}/devices/{{deviceId}}/alerts" }
+    },
+    {
+      "name": "Acknowledge alert",
+      "request": { "method": "PATCH", "url": "{{baseUrl}}/alerts/:alertId/acknowledge" }
+    },
+    {
+      "name": "Weather current",
+      "request": { "method": "GET", "url": "{{baseUrl}}/weather/current?deviceId={{deviceId}}" }
+    },
+    {
+      "name": "Weather forecast",
+      "request": { "method": "GET", "url": "{{baseUrl}}/weather/forecast" }
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "name": "agripulse-hmi",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AgriPulse HMI - root helper scripts. This is NOT a workspace (React Native + Metro do not play well with hoisted node_modules); each of backend/, simulator/, mobile/ is an independent npm project with its own package.json. Use these scripts to install/run them.",
+  "scripts": {
+    "setup": "npm run install:backend && npm run install:simulator && npm run install:mobile",
+    "install:backend": "npm --prefix backend install",
+    "install:simulator": "npm --prefix simulator install",
+    "install:mobile": "npm --prefix mobile install",
+
+    "db:migrate": "npm --prefix backend run prisma:migrate",
+    "db:seed": "npm --prefix backend run db:seed",
+
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:simulator": "npm --prefix simulator run dev",
+
+    "start:mobile": "npm --prefix mobile run start",
+    "android": "npm --prefix mobile run android",
+
+    "typecheck": "npm --prefix backend run typecheck && npm --prefix simulator run typecheck && npm --prefix mobile run typecheck"
+  }
+}
