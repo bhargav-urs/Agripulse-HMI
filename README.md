@@ -1,5 +1,12 @@
 # AgriPulse HMI 🌱💧
 
+[![CI](https://github.com/bhargav-urs/Agripulse-HMI/actions/workflows/ci.yml/badge.svg)](https://github.com/bhargav-urs/Agripulse-HMI/actions/workflows/ci.yml)
+![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
+![React Native](https://img.shields.io/badge/React%20Native-0.86-61DAFB?logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-22-339933?logo=node.js&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
+
 **AgriPulse HMI** is a React Native mobile Human-Machine Interface (HMI) for a
 **simulated smart irrigation pump controller**. It uses **WebSockets** for
 real-time telemetry, **PostgreSQL** for persistence, **Node.js/Express** for the
@@ -17,6 +24,7 @@ weather-aware automatic irrigation, alerts, and historical analytics.
 ## Table of contents
 
 - [System architecture](#system-architecture)
+- [Screenshots](#screenshots)
 - [Repository layout](#repository-layout)
 - [Tech stack](#tech-stack)
 - [Quick start](#quick-start)
@@ -50,6 +58,19 @@ weather-aware automatic irrigation, alerts, and historical analytics.
 ```
 
 See [`docs/architecture.md`](docs/architecture.md) for the full diagram and data flows.
+
+---
+
+## Screenshots
+
+<p align="center">
+  <img src="docs/screenshots/02-dashboard.png" width="230" alt="Live telemetry dashboard" />
+  <img src="docs/screenshots/04-network-diagnostics.png" width="230" alt="Network diagnostics (Java native module)" />
+  <img src="docs/screenshots/03-settings.png" width="230" alt="Device settings and thresholds" />
+  <img src="docs/screenshots/01-operator.png" width="230" alt="Demo operator entry" />
+</p>
+
+<p align="center"><sub>Live dashboard | Java native-module network diagnostics | device settings | demo-operator entry</sub></p>
 
 ---
 
